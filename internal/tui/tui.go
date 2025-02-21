@@ -8,7 +8,7 @@ import (
 	"github.com/koki-develop/go-fzf"
 )
 
-// ShowInteractiveSearch launches an interactive search for the given items.
+// Launches an interactive search for the given items, using go-fzf.
 func ShowInteractiveSearch(items []string) {
 	f, err := fzf.New()
 	if err != nil {
@@ -20,6 +20,7 @@ func ShowInteractiveSearch(items []string) {
 		log.Fatal(err)
 	}
 
+	// Just selected items
 	for _, i := range idxs {
 		fmt.Println(items[i])
 	}

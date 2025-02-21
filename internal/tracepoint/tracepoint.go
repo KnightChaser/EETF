@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 )
 
-// ListTracepoints scans /sys/kernel/debug/tracing/events for tracepoints that have a format file.
+// Scans /sys/kernel/debug/tracing/events/syscalls
+// for tracepoints that have a format file.
 func ListTracepoints() ([]string, error) {
 	var tracepoints []string
 
@@ -17,6 +18,7 @@ func ListTracepoints() ([]string, error) {
 		return nil, fmt.Errorf("unable to read tracing events: %v", err)
 	}
 
+	// Find all syscall tracepoints that have a format file
 	for _, file := range files {
 		if file.IsDir() {
 			formatFile := filepath.Join(rootDir, file.Name(), "format")
