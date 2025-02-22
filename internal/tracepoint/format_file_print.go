@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/alecthomas/chroma/formatters"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
 	"github.com/fatih/color"
 	"github.com/rodaine/table"
 )
@@ -24,15 +27,66 @@ func GetFormatData(tracepoint string) (string, error) {
 }
 
 // Converts and returns the fields into a C-struct style representation.
+// This also highlights the C code using Chroma package.
 func FormatAsCStruct(structName string, fields []Field) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("struct %s {\n", structName))
-	for _, f := range fields {
-		sb.WriteString(fmt.Sprintf("    %s %s;  // offset:%s; size:%s; signed:%s\n",
-			f.Type, f.Name, f.Offset, f.Size, f.Signed))
+
+	// Start the struct definition.
+	sb.WriteString(fmt.Sprintf("typedef struct %s {\n", structName))
+
+	// First, determine the maximum length of field declarations ("type name;").
+	//        It will be used to align the annotations.
+	maxDeclLen := 0
+	decls := make([]string, len(fields))
+	for i, field := range fields {
+		decl := fmt.Sprintf("%s %s;", field.Type, field.Name)
+		decls[i] = decl
+		if len(decl) > maxDeclLen {
+			maxDeclLen = len(decl)
+		}
 	}
-	sb.WriteString("};")
-	return sb.String()
+
+	// Append each field with an annotation aligned in the same column.
+	for i, field := range fields {
+		decl := decls[i]
+		padding := strings.Repeat(" ", maxDeclLen-len(decl))
+		// The two spaces before the annotation can be adjusted for your visual preference.
+		line := fmt.Sprintf("    %s%s  // offset: %v, size: %v", decl, padding, field.Offset, field.Size)
+		sb.WriteString(line + "\n")
+	}
+
+	// End the struct definition.
+	sb.WriteString(fmt.Sprintf("} %s;\n", structName))
+
+	code := sb.String()
+
+	// Use Chroma to highlight the generated C code.
+	lexer := lexers.Get("c")
+	if lexer == nil {
+		lexer = lexers.Fallback
+	}
+	formatter := formatters.Get("terminal256")
+	if formatter == nil {
+		formatter = formatters.Fallback
+	}
+	style := styles.Get("colorful")
+
+	if style == nil {
+		style = styles.Fallback
+	}
+
+	iterator, err := lexer.Tokenise(nil, code)
+	if err != nil {
+		// Fallback to unhighlighted code in case of an error.
+		return code
+	}
+	var highlightedCode strings.Builder
+	err = formatter.Format(&highlightedCode, style, iterator)
+	if err != nil {
+		return code
+	}
+
+	return highlightedCode.String()
 }
 
 // Converts and returns a tabular representation of the fields.
