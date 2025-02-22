@@ -21,6 +21,6 @@ func Execute() {
 }
 
 func init() {
+	// This is enough since it brings other commands within the same package(cmd)
 	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(formatCmd)
 }
