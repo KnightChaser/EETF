@@ -14,8 +14,9 @@ import (
 // ./eetf list
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all available tracepoints",
-	Long:  `Scan the /sys/kernel/debug/tracing/events/syscalls directory and list all tracepoints that have a format file.`,
+	Short: "List all available tracepoints within this system",
+	Long: `Scan the /sys/kernel/debug/tracing/events/*/*/ directory and
+		   list all available tracepoints for eBPF that have a format file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		tracepoints, err := tracepoint.ListTracepoints()
 		if err != nil {

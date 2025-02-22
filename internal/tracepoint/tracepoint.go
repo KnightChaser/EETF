@@ -7,25 +7,39 @@ import (
 	"path/filepath"
 )
 
-// Scans /sys/kernel/debug/tracing/events/syscalls
-// for tracepoints that have a format file.
+// ListTracepoints scans /sys/kernel/debug/tracing/events/*/*/format
+// and returns a slice of tracepoints in the form "group/event".
 func ListTracepoints() ([]string, error) {
 	var tracepoints []string
 
-	rootDir := "/sys/kernel/debug/tracing/events/syscalls"
-	files, err := ioutil.ReadDir(rootDir)
+	rootDir := "/sys/kernel/debug/tracing/events/"
+	groups, err := ioutil.ReadDir(rootDir)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read tracing events: %v", err)
+		return nil, fmt.Errorf("failed to read %s: %v", rootDir, err)
 	}
 
-	// Find all syscall tracepoints that have a format file
-	for _, file := range files {
-		if file.IsDir() {
-			formatFile := filepath.Join(rootDir, file.Name(), "format")
-			if _, err := ioutil.ReadFile(formatFile); err == nil {
-				tracepoints = append(tracepoints, file.Name())
+	// Iterate over reach group directory (e.g., "syscalls", "alarmtimer", etc.)
+	for _, group := range groups {
+		if group.IsDir() {
+			groupPath := filepath.Join(rootDir, group.Name())
+			events, err := ioutil.ReadDir(groupPath)
+			if err != nil {
+				// Skip grouops that we can't read
+				continue
+			}
+
+			// Iterate over each event directory under the group
+			for _, event := range events {
+				if event.IsDir() {
+					formatPath := filepath.Join(groupPath, event.Name(), "format")
+					if _, err := ioutil.ReadFile(formatPath); err == nil {
+						// Found a tracepoint with a format file, add it to the list
+						tracepoints = append(tracepoints, fmt.Sprintf("%s/%s", group.Name(), event.Name()))
+					}
+				}
 			}
 		}
 	}
+
 	return tracepoints, nil
 }
