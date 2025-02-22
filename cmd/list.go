@@ -28,6 +28,8 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		tui.ShowInteractiveSearch(tracepoints)
+		// Just print out the selected tracepoint
+		result := tui.InteractiveSelect(tracepoints)
+		fmt.Println(result)
 	},
 }

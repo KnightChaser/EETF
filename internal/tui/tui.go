@@ -2,14 +2,14 @@
 package tui
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/koki-develop/go-fzf"
 )
 
-// Launches an interactive search for the given items, using go-fzf.
-func ShowInteractiveSearch(items []string) {
+// InteractiveSelect displays an interactive fuzzy finder and returns the selected item.
+// If no item is selected, it returns an empty string.
+func InteractiveSelect(items []string) string {
 	f, err := fzf.New()
 	if err != nil {
 		log.Fatal(err)
@@ -20,8 +20,9 @@ func ShowInteractiveSearch(items []string) {
 		log.Fatal(err)
 	}
 
-	// Just selected items
-	for _, i := range idxs {
-		fmt.Println(items[i])
+	if len(idxs) == 0 {
+		return ""
 	}
+	// Return the first selected item.
+	return items[idxs[0]]
 }
