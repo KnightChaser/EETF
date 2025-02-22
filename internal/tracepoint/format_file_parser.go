@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// Field represents a single field from the tracepoint format.
 type Field struct {
+	// Field represents a single field from the tracepoint format.
 	Type   string // Field type
 	Name   string // Field name
 	Offset string // Offset within the tracepoint event structure

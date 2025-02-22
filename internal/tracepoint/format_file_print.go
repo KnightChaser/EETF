@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	"github.com/fatih/color"
+	"github.com/rodaine/table"
 )
 
 // Obtain the format data of a specific tracepoint path.
@@ -33,12 +36,26 @@ func FormatAsCStruct(structName string, fields []Field) string {
 }
 
 // Converts and returns a tabular representation of the fields.
-func FormatAsTable(fields []Field) string {
-	var sb strings.Builder
-	sb.WriteString("FIELD\tTYPE\tOFFSET\tSIZE\tSIGNED\n")
-	for _, f := range fields {
-		sb.WriteString(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\n",
-			f.Name, f.Type, f.Offset, f.Size, f.Signed))
+func PrintFormatAsTable(data TracepointFormatData) {
+	// Print Metadata
+	fmt.Println("Tracepoint Name:", data.Name)
+	fmt.Println("Tracepoint ID:  ", data.Id)
+	// fmt.Println("Print Format:   ", data.PrintFormat)		// Seems unnecessary for now. Later, maybe.
+
+	// Create custom formatters for header and first column.
+	headerFmt := color.New(color.FgCyan, color.Underline, color.Bold).SprintfFunc()
+	columnFmt := color.New(color.FgHiYellow).SprintfFunc()
+
+	// Create the table with headers.
+	tbl := table.New("Field Name", "Type", "Size", "Offset", "Signed")
+	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
+
+	// Add rows for each field.
+	for _, field := range data.Fields {
+		tbl.AddRow(field.Name, field.Type, field.Size, field.Offset, field.Signed)
 	}
-	return sb.String()
+
+	// Capture the printed table output by redirecting the writer, or simply print it.
+	// For simplicity, we'll print directly:
+	tbl.Print()
 }

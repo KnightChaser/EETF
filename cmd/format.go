@@ -80,8 +80,7 @@ Output modes:
 			cStruct := tracepoint.FormatAsCStruct(tpData.Name, tpData.Fields)
 			fmt.Println(cStruct)
 		case "table":
-			table := tracepoint.FormatAsTable(tpData.Fields)
-			fmt.Println(table)
+			tracepoint.PrintFormatAsTable(tpData)
 		default:
 			fmt.Println("Unsupported output format. Please choose one of: raw, c, table")
 		}
